@@ -1,2 +1,20 @@
 # Use the httpd-parent image as base
 FROM quay.io/redhattraining/httpd-parent
+
+# Expose the app on port greater than 1024
+EXPOSE 8080
+#LABEL the new exposed port
+#
+LABEL   io.openshift.expose-service="8080:http" \
+	io.k8s.description="A basic Apache HTTP Server Child Image, Uses ONBUILD" \
+	io.k8s.display="Apache HTTP Server" \
+	io.openshift.tags="apache, httpd"
+# Change the port in http conf
+RUN sed -i "s/Listen 80/Listen 8080/g" /etc/httpd/conf/httpd.conf
+RUN sed -i "s/#ServerName www.example.com:80/ServerName 0.0.0.0:8080/g" /etc/httpd/conf/httpd.conf
+
+# Change the logs folder ownership to group root
+
+RUN chgrp -R 0 /var/log/httpd /var/run/httpd && chmod -R g=u /var/log/httpd /var/run/httpd
+
+USER 1001
